@@ -788,20 +788,29 @@
             if(adminForm) {
                 adminForm.addEventListener('submit', (e) => {
                     e.preventDefault();
-                    // Mock login action
+                    
+                    const emailInput = adminForm.querySelector('input[type="email"]');
+                    const passInput = adminForm.querySelector('input[type="password"]');
                     const btn = adminForm.querySelector('button[type="submit"]');
                     const originalText = btn.innerHTML;
-                    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Authenticating...';
                     
-                    setTimeout(() => {
-                        btn.innerHTML = originalText;
+                    if (emailInput.value === 'admin123@gmail.com' && passInput.value === 'admin123') {
+                        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Authenticating...';
+                        setTimeout(() => {
+                            window.location.href = 'admin.html';
+                        }, 500);
+                    } else {
+                        const existingError = document.getElementById('admin-login-error');
+                        if (existingError) existingError.remove();
+
                         const errorMsg = document.createElement('div');
+                        errorMsg.id = 'admin-login-error';
                         errorMsg.className = 'bg-red-50 text-red-600 border border-red-200 rounded-lg p-3 text-sm font-bold mt-4 text-center flex items-center justify-center gap-2';
-                        errorMsg.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Invalid credentials.';
+                        errorMsg.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Invalid credentials. Please try again.';
                         adminForm.appendChild(errorMsg);
                         setTimeout(() => errorMsg.remove(), 3500);
                         adminForm.reset();
-                    }, 1200);
+                    }
                 });
             }
 
