@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CarePlus Clinic | Admin Dashboard</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        /* Smooth transitions for the sidebar and views */
+        #sidebar {
+            transition: transform 0.3s ease-in-out;
+        }
+        
+        /* Custom scrollbar */
+        .custom-scrollbar::-webkit-scrollbar {
+            height: 8px; width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9; border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1; border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+
+        .view-section {
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        .view-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Custom file input styling */
+        input[type="file"]::file-selector-button {
+            border: none;
+            background: #0ea5e9;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background .2s ease-in-out;
+            margin-right: 12px;
+            font-weight: 600;
+        }
+        input[type="file"]::file-selector-button:hover {
+            background: #0284c7;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 font-sans text-slate-800 antialiased overflow-hidden flex h-screen">
+
+    <div id="sidebar-backdrop" class="fixed inset-0 bg-slate-900/50 z-20 lg:hidden hidden" onclick="toggleSidebar()"></div>
+
+    <aside id="sidebar" class="fixed inset-y-0 left-0 w-72 bg-slate-900 text-white shadow-xl z-30 transform -translate-x-full lg:translate-x-0 lg:static lg:flex-shrink-0 flex flex-col">
+        <div class="h-20 flex items-center px-8 border-b border-slate-800">
+            <div class="w-8 h-8 bg-brand-500 rounded flex items-center justify-center mr-3 text-white shadow-md">
+                <i class="fa-solid fa-plus text-sm"></i>
+            </div>
+            <span class="font-bold text-2xl tracking-tight">Care<span class="text-brand-400">Plus</span></span>
+            <span class="ml-2 text-xs font-medium bg-slate-800 px-2 py-0.5 rounded text-slate-400 border border-slate-700">Admin</span>
+        </div>
+
+        <div class="flex-1 overflow-y-auto py-6 px-4 space-y-2">
+            <p class="px-4 text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Management</p>
+            
+            <button onclick="switchView('appointments')" id="nav-appointments" class="w-full flex items-center gap-3 px-4 py-3 bg-brand-600/10 text-brand-400 rounded-xl font-medium border border-brand-500/20 transition-colors text-left">
+                <i class="fa-solid fa-calendar-check w-5 text-center text-lg"></i> Appointments
+            </button>
+            
+            <button onclick="switchView('doctors')" id="nav-doctors" class="w-full flex items-center gap-3 px-4 py-3 text-slate-300 hover:bg-slate-800 hover:text-white rounded-xl font-medium transition-colors text-left border border-transparent">
+                <i class="fa-solid fa-user-doctor w-5 text-center text-lg"></i> Manage Doctors
+            </button>
+
+            <button onclick="switchView('departments')" id="nav-departments" class="w-full flex items-center gap-3 px-4 py-3 text-slate-300 hover:bg-slate-800 hover:text-white rounded-xl font-medium transition-colors text-left border border-transparent">
+                <i class="fa-solid fa-building-user w-5 text-center text-lg"></i> Departments
+            </button>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col h-full overflow-hidden relative">
+        <header class="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-6 lg:px-10 z-10 shrink-0">
+            <div class="flex items-center gap-4">
+                <button onclick="toggleSidebar()" class="lg:hidden w-10 h-10 flex items-center justify-center rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 focus:outline-none">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <h1 id="page-title" class="text-2xl font-bold text-slate-800 hidden sm:block">Appointments Dashboard</h1>
+            </div>
+            <div class="flex items-center gap-5">
+                <div class="flex items-center gap-3 cursor-pointer">
+                    <div class="text-right hidden md:block">
+                        <p class="text-sm font-bold text-slate-800">System Admin</p>
+                        <p class="text-xs text-slate-500 font-medium">Dashboard Control</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-full bg-brand-100 text-brand-600 border border-brand-200 flex items-center justify-center text-lg shadow-sm">
+                        <i class="fa-solid fa-user-shield"></i>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="flex-1 overflow-y-auto p-6 lg:p-10 custom-scrollbar">
+            
+            <div id="view-appointments" class="view-section active">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm flex items-center gap-5 relative overflow-hidden">
+                        <div class="w-14 h-14 rounded-2xl bg-brand-50 text-brand-600 flex items-center justify-center text-2xl relative z-10">
+                            <i class="fa-solid fa-calendar-check"></i>
+                        </div>
+                        <div class="relative z-10">
+                            <p class="text-sm font-bold text-slate-500 uppercase tracking-wide">Total Appointments</p>
+                            <p class="text-3xl font-extrabold text-slate-800 mt-1" id="stat-total">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="p-6 border-b border-slate-100">
+                        <h2 class="text-xl font-bold text-slate-800">Recent Bookings</h2>
+                    </div>
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-left border-collapse whitespace-nowrap">
+                            <thead>
+                                <tr class="bg-slate-50/80 border-b border-slate-200 text-slate-500 text-xs uppercase tracking-wider font-bold">
+                                    <th class="py-4 px-6">Patient Name</th>
+                                    <th class="py-4 px-6">Phone Number</th>
+                                    <th class="py-4 px-6">Service Requested</th>
+                                    <th class="py-4 px-6">Date</th>
+                                    <th class="py-4 px-6">Status</th>
+                                    <th class="py-4 px-6 text-right">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="appointments-tbody" class="divide-y divide-slate-100 text-sm font-medium text-slate-700">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-doctors" class="view-section">
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-8">
+                    <div class="p-6 border-b border-slate-100 bg-slate-50/50">
+                        <h2 class="text-lg font-bold text-slate-800"><i class="fa-solid fa-user-plus text-brand-500 mr-2"></i> Add New Doctor</h2>
+                    </div>
+                    <form id="form-add-doctor" class="p-6" onsubmit="handleAddDoctor(event)">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div>
+                                <label class="block text-sm font-bold text-slate-700 mb-2">Doctor Name</label>
+                                <input type="text" id="doc-name" required placeholder="e.g. Dr. Sarah Smith" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-brand-500 outline-none transition-all text-slate-700 font-medium">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-slate-700 mb-2">Specialty</label>
+                                <input type="text" id="doc-spec" required placeholder="e.g. Senior Ophthalmologist" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-brand-500 outline-none transition-all text-slate-700 font-medium">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-slate-700 mb-2">Upload Photo</label>
+                                <!-- File input instead of URL -->
+                                <input type="file" id="doc-img-file" required accept="image/*" class="w-full px-4 py-2 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white outline-none transition-all text-slate-700 font-medium">
+                            </div>
+                        </div>
+                        <div class="mt-6 flex justify-end">
+                            <button type="submit" class="bg-brand-600 hover:bg-brand-700 text-white px-6 py-2.5 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2">
+                                <i class="fa-solid fa-plus"></i> Add Doctor
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <h3 class="text-xl font-bold text-slate-800 mb-4">Current Doctors</h3>
+                <div id="doctors-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+            <div id="view-departments" class="view-section">
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-8">
+                    <div class="p-6 border-b border-slate-100 bg-slate-50/50">
+                        <h2 class="text-lg font-bold text-slate-800"><i class="fa-solid fa-layer-group text-brand-500 mr-2"></i> Add New Department</h2>
+                    </div>
+                    <form id="form-add-dept" class="p-6" onsubmit="handleAddDept(event)">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-bold text-slate-700 mb-2">Department Name</label>
+                                <input type="text" id="dept-name" required placeholder="e.g. Cardiology" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-brand-500 outline-none transition-all text-slate-700 font-medium">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-slate-700 mb-2">Short Description</label>
+                                <input type="text" id="dept-desc" required placeholder="e.g. Heart & Vascular Care" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-brand-500 outline-none transition-all text-slate-700 font-medium">
+                            </div>
+                        </div>
+                        <div class="mt-6 flex justify-end">
+                            <button type="submit" class="bg-brand-600 hover:bg-brand-700 text-white px-6 py-2.5 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2">
+                                <i class="fa-solid fa-plus"></i> Add Department
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <h3 class="text-xl font-bold text-slate-800 mb-4">Available Departments for Booking</h3>
+                <div id="departments-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        // --- Sidebar Logic ---
+        const sidebar = document.getElementById('sidebar');
+        const backdrop = document.getElementById('sidebar-backdrop');
+        let isSidebarOpen = false;
+
+        function toggleSidebar() {
+            isSidebarOpen = !isSidebarOpen;
+            if (isSidebarOpen) {
+                sidebar.classList.remove('-translate-x-full');
+                backdrop.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                backdrop.classList.add('hidden');
+            }
+        }
+
+        // --- Navigation Logic ---
+        function switchView(viewName) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.getElementById(`view-${viewName}`).classList.add('active');
+
+            const navIds = ['nav-appointments', 'nav-doctors', 'nav-departments'];
+            navIds.forEach(id => {
+                const btn = document.getElementById(id);
+                btn.className = 'w-full flex items-center gap-3 px-4 py-3 text-slate-300 hover:bg-slate-800 hover:text-white rounded-xl font-medium transition-colors text-left border border-transparent';
+            });
+
+            const activeBtn = document.getElementById(`nav-${viewName}`);
+            activeBtn.className = 'w-full flex items-center gap-3 px-4 py-3 bg-brand-600/10 text-brand-400 rounded-xl font-medium border border-brand-500/20 transition-colors text-left';
+
+            const titles = {
+                'appointments': 'Appointments Dashboard',
+                'doctors': 'Doctor Management',
+                'departments': 'Department Management'
+            };
+            document.getElementById('page-title').innerText = titles[viewName];
+
+            if (window.innerWidth < 1024) toggleSidebar();
+        }
+
+        // --- Appointments Logic ---
+        let appointments = [
+            { id: 'APT-001', name: 'Rahul Sharma', phone: '9876543210', service: 'Cardiology', date: '2026-09-28', status: 'Pending' },
+            { id: 'APT-002', name: 'Priya Singh', phone: '9123456789', service: 'Ophthalmology', date: '2026-09-29', status: 'Confirmed' },
+            { id: 'APT-003', name: 'Amit Kumar', phone: '9988776655', service: 'Dental Care', date: '2026-09-29', status: 'Completed' },
+        ];
+
+        window.updateAppointmentStatus = function(id, newStatus) {
+            const index = appointments.findIndex(app => app.id === id);
+            if (index !== -1) {
+                appointments[index].status = newStatus;
+                renderAppointments(); 
+            }
+        };
+
+        function renderAppointments() {
+            const tbody = document.getElementById('appointments-tbody');
+            document.getElementById('stat-total').innerText = appointments.length;
+            tbody.innerHTML = '';
+
+            const statusColors = {
+                'Pending': 'bg-yellow-100 text-yellow-800 border-yellow-300',
+                'Confirmed': 'bg-blue-100 text-blue-800 border-blue-300',
+                'Completed': 'bg-green-100 text-green-800 border-green-300',
+                'Cancelled': 'bg-red-100 text-red-800 border-red-300'
+            };
+
+            appointments.forEach(app => {
+                const cleanPhone = app.phone.replace(/\D/g, '');
+                const waNumber = cleanPhone.startsWith('91') ? cleanPhone : `91${cleanPhone}`;
+                const waMessage = encodeURIComponent(`Hello ${app.name}, this is CarePlus Clinic. We are reaching out regarding your appointment request for ${app.service} on ${app.date}.`);
+                const waUrl = `https://wa.me/${waNumber}?text=${waMessage}`;
+                
+                let badgeClass = statusColors[app.status] || statusColors['Pending'];
+                const statuses = ['Pending', 'Confirmed', 'Completed', 'Cancelled'];
+                
+                let optionsHtml = statuses.map(s => 
+                    `<option value="${s}" ${s === app.status ? 'selected' : ''} class="bg-white text-slate-800">${s}</option>`
+                ).join('');
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50/80 transition-colors">
+                        <td class="py-4 px-6 border-b border-slate-100 font-bold text-slate-800">${app.name}</td>
+                        <td class="py-4 px-6 border-b border-slate-100 font-semibold">+91 ${app.phone}</td>
+                        <td class="py-4 px-6 border-b border-slate-100 text-slate-700">${app.service}</td>
+                        <td class="py-4 px-6 border-b border-slate-100 text-slate-600">${app.date}</td>
+                        <td class="py-4 px-6 border-b border-slate-100">
+                            <select onchange="updateAppointmentStatus('${app.id}', this.value)" 
+                                    class="${badgeClass} py-1.5 pl-3 pr-8 rounded-full text-xs font-bold border outline-none cursor-pointer appearance-none bg-no-repeat shadow-sm hover:shadow" 
+                                    style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23475569%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E'); background-position: right 0.7rem top 50%; background-size: 0.65rem auto;">
+                                ${optionsHtml}
+                            </select>
+                        </td>
+                        <td class="py-4 px-6 border-b border-slate-100 text-right">
+                            <a href="${waUrl}" target="_blank" class="inline-flex items-center gap-2 bg-[#25D366] hover:bg-[#128C7E] text-white px-4 py-2 rounded-lg font-bold text-sm transition-all shadow-sm">
+                                <i class="fa-brands fa-whatsapp text-lg"></i> Chat
+                            </a>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        // --- Doctors Logic (with FileReader) ---
+        let doctors = [
+            { id: 1, name: 'Dr. Sarah Smith', spec: 'Senior Ophthalmologist', img: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400&q=80' },
+            { id: 2, name: 'Dr. John Doe', spec: 'Head of Cardiology', img: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400&q=80' }
+        ];
+
+        function renderDoctors() {
+            const grid = document.getElementById('doctors-grid');
+            grid.innerHTML = '';
+            doctors.forEach(doc => {
+                grid.innerHTML += `
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col group">
+                        <div class="h-48 overflow-hidden bg-slate-100">
+                            <img src="${doc.img}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" alt="Doctor" onerror="this.src='https://placehold.co/400x300/e2e8f0/64748b?text=No+Image'">
+                        </div>
+                        <div class="p-5 flex-1 flex flex-col justify-between">
+                            <div>
+                                <h4 class="font-bold text-lg text-slate-900">${doc.name}</h4>
+                                <p class="text-brand-600 text-sm font-medium mb-4">${doc.spec}</p>
+                            </div>
+                            <button onclick="removeDoctor(${doc.id})" class="w-full py-2 bg-red-50 hover:bg-red-500 text-red-600 hover:text-white rounded-lg font-bold transition-colors text-sm flex items-center justify-center gap-2 border border-red-100 hover:border-red-500">
+                                <i class="fa-solid fa-trash-can"></i> Remove
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        window.handleAddDoctor = function(e) {
+            e.preventDefault();
+            const name = document.getElementById('doc-name').value;
+            const spec = document.getElementById('doc-spec').value;
+            const fileInput = document.getElementById('doc-img-file');
+            const file = fileInput.files[0];
+            const form = e.target;
+            const btn = form.querySelector('button[type="submit"]');
+
+            if (file) {
+                // Use FileReader to convert uploaded image to a base64 Data URL
+                const reader = new FileReader();
+                reader.onloadend = function() {
+                    const base64String = reader.result;
+                    doctors.push({ id: Date.now(), name, spec, img: base64String });
+                    renderDoctors();
+                    showSuccessButton(btn, form);
+                };
+                reader.readAsDataURL(file); // This triggers onloadend when complete
+            } else {
+                // Fallback if no file is selected (though input is required)
+                doctors.push({ id: Date.now(), name, spec, img: 'https://placehold.co/400x300/e2e8f0/64748b?text=No+Image' });
+                renderDoctors();
+                showSuccessButton(btn, form);
+            }
+        }
+
+        function showSuccessButton(btn, form) {
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-check"></i> Added!';
+            btn.classList.replace('bg-brand-600', 'bg-green-500');
+            form.reset(); // clear form
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.classList.replace('bg-green-500', 'bg-brand-600');
+            }, 2000);
+        }
+
+        window.removeDoctor = function(id) {
+            doctors = doctors.filter(d => d.id !== id);
+            renderDoctors();
+        }
+
+        // --- Departments Logic ---
+        let departments = [
+            { id: 1, name: 'Ophthalmology', desc: 'Advanced Eye Care Department' },
+            { id: 2, name: 'Cardiology', desc: 'Heart & Vascular Care' },
+            { id: 3, name: 'Dental Care', desc: 'Complete Oral Health' }
+        ];
+
+        function renderDepartments() {
+            const grid = document.getElementById('departments-grid');
+            grid.innerHTML = '';
+            departments.forEach(dept => {
+                grid.innerHTML += `
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col justify-between hover:shadow-md transition-shadow">
+                        <div>
+                            <div class="w-12 h-12 bg-slate-100 text-slate-500 rounded-xl flex items-center justify-center text-xl mb-4">
+                                <i class="fa-solid fa-layer-group"></i>
+                            </div>
+                            <h4 class="font-bold text-lg text-slate-900">${dept.name}</h4>
+                            <p class="text-slate-500 text-sm mt-1 mb-6">${dept.desc}</p>
+                        </div>
+                        <button onclick="removeDepartment(${dept.id})" class="w-full py-2 bg-red-50 hover:bg-red-500 text-red-600 hover:text-white rounded-lg font-bold transition-colors text-sm flex items-center justify-center gap-2 border border-red-100 hover:border-red-500">
+                            <i class="fa-solid fa-trash-can"></i> Remove
+                        </button>
+                    </div>
+                `;
+            });
+        }
+
+        window.handleAddDept = function(e) {
+            e.preventDefault();
+            const name = document.getElementById('dept-name').value;
+            const desc = document.getElementById('dept-desc').value;
+            
+            departments.push({ id: Date.now(), name, desc });
+            
+            const btn = e.target.querySelector('button[type="submit"]');
+            showSuccessButton(btn, e.target);
+            renderDepartments();
+        }
+
+        window.removeDepartment = function(id) {
+            departments = departments.filter(d => d.id !== id);
+            renderDepartments();
+        }
+
+        // Initialize on load
+        renderAppointments();
+        renderDoctors();
+        renderDepartments();
+    </script>
+</body>
+</html>
